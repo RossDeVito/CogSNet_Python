@@ -127,6 +127,20 @@ def evaluate_for_node(events, surveys, L_vals, mu_vals, theta_vals, forget_types
 
 def evaluate_model_params(edge_dict, interaction_dict, survey_dict,
                           L_vals, mu_vals, theta_vals, forget_types):
+	"""
+	Given interaction data, survey data, and lists of parameters to check,
+		creates a dataframe with a row for each combination of parameters.
+		The combination of parameters will have the average jaccard similarity
+		and rank-biased overlap (RBO) across all surveys.
+
+	Creates a list of dask delayed processes, each of which handle one node who
+		has survey data.  
+
+	Return example:
+		     L   mu  theta forget_func  jaccard_sim       rbo
+		0  1.0  0.1   0.05         exp     0.240194  0.298805
+		1  2.0  0.1   0.05         exp     0.286562  0.327788
+	"""
 	res_matrix = []
 
 	n = 1
@@ -145,13 +159,21 @@ def evaluate_model_params(edge_dict, interaction_dict, survey_dict,
 
 	res_matrix = np.vstack(dask.compute(res_matrix)[0])
 
-	return res_matrix
+	res_df = pd.DataFrame(
+		res_matrix, columns=['L', 'mu', 'theta', 'forget_func', 'jaccard_sim', 'rbo'])
+	res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo']
+        ] = res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo']].astype(float)
+	res_df.L = res_df.L / 24
+
+	return res_df
 
 
 if __name__ == "__main__":
-	cluster = LocalCluster(n_workers=90, dashboard_address=':8766')
+	# Create dask cluster
+	cluster = LocalCluster(n_workers=30, dashboard_address=':8766')
 	client = Client(cluster)
 
+	# Load required dicts
 	with open(os.path.join("data", "edge_dict.pkl"), 'rb') as pkl:
 		edge_dict = pickle.load(pkl)
 
@@ -163,89 +185,36 @@ if __name__ == "__main__":
 	
 	# create values which will be used in grid search
 
-	# run 1
-	# L_vals = np.asarray(range(1, 365, 2)) * 24
-	# mu_vals = np.asarray([.4, .6, .8])
-	# theta_vals = np.asarray([.05, .1, .3, .5])
-	# forget_types = ['pow', 'exp']
-
-	# # run 2
-	# # L_vals = np.asarray(range(250, 450, 2)) * 24
-	# L_vals = np.asarray([350, 400]) * 24
-	# mu_vals = np.linspace(.5, .7, 20)
-	# theta_vals = np.linspace(.1, .4, 20)
-	# forget_types = ['exp']
-
-	# # run 3
-	# # L_vals = np.asarray(range(250, 450, 2)) * 24
-	# L_vals = np.asarray(
-	# 	[10, 50, 100, 147, 166, 181, 200, 261, 265, 255, 253, 251, 263, 279, 
-	# 		277, 271, 269, 275, 273, 299,
-	# 		297, 301, 291, 289, 293, 303, 307, 305, 295, 319, 309, 317, 311,
-	# 		313, 315, 325, 323, 321, 327, 331, 329, 333, 359, 357, 345, 347,
-	# 		343, 339, 355, 363, 337, 353, 341, 361, 349, 335, 351, 380, 390, 
-	# 		400, 410, 420, 450, 460]
-	# 	) * 24
-	# mu_vals = np.asarray([.2, .25, .3, .35, .4, .45, .5, .6, .7])
-	# theta_vals = np.linspace(.1, .4, 10)
-	# forget_types = ['exp']
-
-	# # # run 3 val
+	# # # run 3 validation
 	# L_vals = np.asarray([460]) * 24
 	# mu_vals = np.asarray([.2])
 	# theta_vals =np.asarray([.166667])
 	# forget_types = ['exp']
 
-	# # run 4
-	# L_vals = np.asarray(
-	# 	[359, 321, 333, 315, 335, 339, 329, 325, 319, 313, 331, 337, 317,
-	# 		327, 323, 295, 293, 297, 291, 311, 100, 341, 345, 343, 351, 355,
-	# 		353, 289, 361, 349, 347, 200, 420, 390, 166, 357, 363, 380, 147,
-	# 		263, 265, 261, 269, 181, 400, 410, 277, 279, 275, 271, 273, 299,
-	# 		255, 460, 450, 303, 307, 301, 305, 253, 309, 251,
-	# 		470, 480, 490, 500, 510, 520, 530, 540, 550, 560, 570, 580, 590, 600]
-	# 	) * 24
-	# mu_vals = np.asarray([.15, .17, .19, .2, .21, .23, .24, .25])
-	# theta_vals = np.linspace(0, 2.5, 10)[1:]
-	# forget_types = ['exp']
-
-	# run 5
-	# L_vals = np.asarray([7, 14, 21, 60, 90, 120, 180, 365, 460]) * 24
-	# mu_vals = np.asarray([.2, .3, .4, .5, .6, .7, .8, .9, 1.0])
-	# theta_vals =np.asarray([.1, .166667, .2, .3, .4, .5, .6])
-	# forget_types = ['exp', 'pow']
-
-	# # run 6
-	# L_vals = np.asarray([7, 14, 21, 60, 90, 120, 180, 365, 460, 730]) * 24
-	# mu_vals = np.linspace(.05, 1, 20)
-	# theta_vals = [.0001]
-	# theta_vals.extend(np.linspace(1/30, 1, 30).tolist())
-	# theta_vals = np.asarray(theta_vals)
-	# forget_types = ['exp', 'pow']
-
 	# run 6 val
-	L_vals = np.asarray([1, 4, 7, 14, 21, 28, 60, 90, 120, 180, 365, 460, 730]) * 24
-	mu_vals = np.linspace(.002, 1, 60)
-	theta_vals = np.linspace(.001, 1, 60)
+	# L_vals = np.asarray([1, 4, 7, 14, 21, 28, 60, 90, 120, 180, 365, 460, 730]) * 24
+	# mu_vals = np.linspace(.002, 1, 60)
+	# theta_vals = np.linspace(.001, 1, 60)
+	# forget_types = ['exp']
+	L_vals = np.asarray([1, 2]) * 24
+	mu_vals = np.asarray([.1])
+	theta_vals = np.asarray([.05])
 	forget_types = ['exp']
 
-
+	# Preform grid search to create dataframe of parameters combination and
+	# their respective performances
 	start_time = time.time()
 
-	results = evaluate_model_params(edge_dict, interaction_dict, survey_dict,
+	res_df = evaluate_model_params(edge_dict, interaction_dict, survey_dict,
                                  	L_vals, mu_vals, theta_vals, forget_types)
 
 	print(time.time() - start_time)
 
-	res_df = pd.DataFrame(results, columns=['L', 'mu', 'theta', 'forget_func', 'jaccard_sim', 'rbo'])
-	res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo']
-        ] = res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo']].astype(float)
-	res_df.L = res_df.L / 24
-
+	# Format and save results
 	mean_df = res_df.groupby(['L', 'mu', 'theta', 'forget_func']).mean().reset_index()
-	mean_df.to_csv(os.path.join('results', 'mean_df.csv'))
-	med_df = res_df.groupby(['L', 'mu', 'theta', 'forget_func']).median().reset_index()
-	med_df.to_csv(os.path.join('results', 'med_df.csv'))
+	# mean_df.to_csv(os.path.join('results', 'mean_df.csv'))
+	# med_df = res_df.groupby(['L', 'mu', 'theta', 'forget_func']).median().reset_index()
+	# med_df.to_csv(os.path.join('results', 'med_df.csv'))
 
 	client.close()
 	cluster.close()

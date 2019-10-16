@@ -30,8 +30,10 @@ def evaluate_for_node(events, surveys):
 		survey_res = list(surveys[survey_time].values())
 		selected_ids = ordered_canidates[:len(survey_res)]
 
-		# similarities.append(jaccard_similarity(survey_res, selected_ids))
-		similarities.append(rbo.RankingSimilarity(survey_res, selected_ids).rbo())
+		similarities.append([
+			jaccard_similarity(survey_res, selected_ids),
+			rbo.RankingSimilarity(survey_res, selected_ids).rbo()
+		])
 
 	return similarities
 
@@ -52,7 +54,7 @@ def evaluate_recency_model(edge_dict, interaction_dict, survey_dict):
 			))
 		n += 1
 
-	return np.mean(similarities)
+	return np.mean(np.stack(similarities), axis=0)
 
 
 if __name__ == "__main__":
@@ -71,4 +73,5 @@ if __name__ == "__main__":
 
 	print(time.time() - start_time)
 
-	print("Avg Jaccard similarity:\t{}".format(result))
+	print("Jaccard similarity:\t{}".format(result[0]))
+	print("RBO:\t{}".format(result[1]))

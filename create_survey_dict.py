@@ -1,3 +1,16 @@
+"""
+Creates and pickles 2 dictionaries.
+
+	survey_dict.pkl: for each node_id to complete a survey, contains
+		information on when they completed surveys and their rankings
+		on each survey
+
+	survey_textcall_dict.pkl: same as survey_dict, but only contains
+		survey responce node_ids that are in the call/text records and
+		survey respondants who had survey responces that are in the 
+		call/text records
+"""
+
 import os
 import time
 import datetime

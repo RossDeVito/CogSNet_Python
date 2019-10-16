@@ -22,8 +22,8 @@ run_freq_model.py predicts top contacts by selecting the top n nodes who had int
 ## Current Best Results
 
 ### Random (n = 100)
-Jaccard Similarity: .0414
-RBO: .0405
+Jaccard Similarity: .0410
+RBO: .0408
 
 ### Recency-Based
 Jaccard Similarity: .2901
