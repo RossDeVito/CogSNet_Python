@@ -6,6 +6,8 @@ from itertools import product
 import numpy as np
 import pandas as pd
 
+import rbo  # https://github.com/changyaochen/rbo
+
 
 def jaccard_similarity(list1, list2):
 	s1 = set(list1)
@@ -28,7 +30,8 @@ def evaluate_for_node(events, surveys):
 		survey_res = list(surveys[survey_time].values())
 		selected_ids = ordered_canidates[:len(survey_res)]
 
-		similarities.append(jaccard_similarity(survey_res, selected_ids))
+		# similarities.append(jaccard_similarity(survey_res, selected_ids))
+		similarities.append(rbo.RankingSimilarity(survey_res, selected_ids).rbo())
 
 	return similarities
 
@@ -59,7 +62,7 @@ if __name__ == "__main__":
 	with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
 		interaction_dict = pickle.load(pkl)
 
-	with open(os.path.join("data", "survey_dict.pkl"), 'rb') as pkl:
+	with open(os.path.join("data", "survey_textcall_dict.pkl"), 'rb') as pkl:
 		survey_dict = pickle.load(pkl)
 
 	start_time = time.time()

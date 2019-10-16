@@ -17,3 +17,22 @@ run_recency_model.py predicts top contacts by selecting the top n nodes who had 
 
 ### Frequency-Based
 run_freq_model.py predicts top contacts by selecting the top n nodes who had interacted with the node being predicted for the most time in the time period from the start of the study to the time of the survey, where n is the number of recent contacts listed on the survey. If the node being predicted for listed more contacts than the data shows nodes interacted with in the time period from the start of the study to the survey, all nodes interacted with in that time period are selected resulting in a total number predicted less than n.
+
+
+## Current Best Results
+
+### Random (n = 100)
+Jaccard Similarity: .0414
+RBO: .0405
+
+### Recency-Based
+Jaccard Similarity: .2901
+RBO: .3093
+
+### Frequency-Based
+Jaccard Similarity: .3377
+RBO: .3644
+
+### CogSNet
+Jaccard Similarity: .3987
+RBO: .4107
