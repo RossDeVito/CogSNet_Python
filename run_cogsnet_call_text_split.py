@@ -232,8 +232,8 @@ if __name__ == "__main__":
 
 	# run 6 val
 	L_vals = np.asarray([1, 4, 7, 14, 21, 28, 60, 90, 120, 180, 365, 460, 730]) * 24
-	mu_vals = np.linspace(.002, .9, 20)
-	theta_vals = np.linspace(.001, .5, 20)
+	mu_vals = np.linspace(.002, .9, 15)
+	theta_vals = np.linspace(.001, .5, 10)
 	forget_types = ['exp']
 
 	param_grid = ParamGrid(L_vals, mu_vals, mu_vals,
