@@ -32,21 +32,24 @@ if __name__ == "__main__":
 	start_time = min(np.hstack(events))
 
 	# uncommenting this out results in a better plot
-	# events = [e - start_time + 1 for e in events]
+	events = [e - start_time for e in events]
+	start_time = .000001
 
 	hawkes_learner = HawkesExpKern(.01, verbose=True)
-	hawkes_learner = hawkes_learner.fit(events, start_time)
+	hawkes_learner = hawkes_learner.fit(events)
 	hawkes_learner.plot_estimated_intensity(events)
 	plt.savefig("F")
 
 	e1 = [events[0]]
 	e2 = [events[7]]
 
+	hl_1 = HawkesExpKern(.01, verbose=True)
 	hl_1_then_2 = HawkesExpKern(.01, verbose=True)
 	hl_2 = HawkesExpKern(.01, verbose=True)
 
-	hl_1_then_2 = hl_1_then_2.fit(e1, start_time)
-	hl_1_then_2 = hl_1_then_2.fit(e2, start_time)
+	hl_1 = hl_1.fit(e1)
+	hl_1_then_2 = hl_1_then_2.fit(e1)
+	hl_1_then_2 = hl_1_then_2.fit(e2)
 
 	hl_2 = hl_2.fit(e2, start_time)
 

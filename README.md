@@ -36,6 +36,11 @@ Jaccard Similarity: .3377
 
 RBO: .3644
 
+### Hawkes Process
+Jaccard Similarity: .3794
+
+RBO: .3945
+
 ### CogSNet
 Jaccard Similarity: .3987
 

@@ -170,7 +170,7 @@ def evaluate_model_params(edge_dict, interaction_dict, survey_dict,
 
 if __name__ == "__main__":
 	# Create dask cluster
-	cluster = LocalCluster(n_workers=30, dashboard_address=':8766')
+	cluster = LocalCluster(n_workers=90, dashboard_address=':8766')
 	client = Client(cluster)
 
 	# Load required dicts
@@ -196,25 +196,27 @@ if __name__ == "__main__":
 	# mu_vals = np.linspace(.002, 1, 60)
 	# theta_vals = np.linspace(.001, 1, 60)
 	# forget_types = ['exp']
-	L_vals = np.asarray([1, 2]) * 24
-	mu_vals = np.asarray([.1])
-	theta_vals = np.asarray([.05])
+
+	# run 8
+	L_vals = np.asarray(range(1, 29)) * 24
+	mu_vals = np.linspace(.00001, .1, 30)
+	theta_vals = np.linspace(.00001, .1, 30)
 	forget_types = ['exp']
 
 	# Preform grid search to create dataframe of parameters combination and
 	# their respective performances
-	start_time = time.time()
+	# start_time = time.time()
 
 	res_df = evaluate_model_params(edge_dict, interaction_dict, survey_dict,
                                  	L_vals, mu_vals, theta_vals, forget_types)
 
-	print(time.time() - start_time)
+	# print(time.time() - start_time)
 
 	# Format and save results
 	mean_df = res_df.groupby(['L', 'mu', 'theta', 'forget_func']).mean().reset_index()
-	# mean_df.to_csv(os.path.join('results', 'mean_df.csv'))
-	# med_df = res_df.groupby(['L', 'mu', 'theta', 'forget_func']).median().reset_index()
-	# med_df.to_csv(os.path.join('results', 'med_df.csv'))
+	mean_df.to_csv(os.path.join('results', 'mean_df.csv'))
+	med_df = res_df.groupby(['L', 'mu', 'theta', 'forget_func']).median().reset_index()
+	med_df.to_csv(os.path.join('results', 'med_df.csv'))
 
 	client.close()
 	cluster.close()
