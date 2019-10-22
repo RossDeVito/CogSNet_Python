@@ -37,11 +37,19 @@ Jaccard Similarity: .3377
 RBO: .3644
 
 ### Hawkes Process
-Jaccard Similarity: .3794
+#### beta = 1.727784e-07
 
-RBO: .3945
+Jaccard Similarity: .3836
+
+RBO: .3962
 
 ### CogSNet
-Jaccard Similarity: .3987
+#### L = 21.0, mu = 0.018915, theta = 0.017932, exp forget func
+Jaccard Similarity: .3939
+
+RBO: .4092
+
+#### L = 120.0, mu = 0.018915, theta = 0.017932, exp forget func
+Jaccard Similarity: .3909
 
 RBO: .4107
