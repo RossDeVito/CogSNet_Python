@@ -21,13 +21,6 @@ def get_signals(event_times, observation_times, beta):
 
 	event_times = np.asarray(event_times)
 
-	global s
-	s = event_times
-	global o
-	o = observation_times
-	global d 
-	d = beta
-
 	for obs_time in observation_times:
 		times_before_obs = event_times[event_times < obs_time]
 		time_deltas = obs_time - times_before_obs
