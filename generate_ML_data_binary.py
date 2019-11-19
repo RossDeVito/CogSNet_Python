@@ -42,8 +42,8 @@ def get_hawkes(event_times, observation_time, beta):
 
 
 if __name__ == "__main__":
-    with open(os.path.join("data", "edge_dict.pkl"), 'rb') as pkl:
-        edge_dict = pickle.load(pkl)
+    # with open(os.path.join("data", "edge_dict.pkl"), 'rb') as pkl:
+    #     edge_dict = pickle.load(pkl)
 
     with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
         interaction_dict = pickle.load(pkl)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     data_rows = []
     
     for respondant_id, surveys in survey_dict.items():
-        if (respondant_id not in edge_dict.keys()):
+        if (respondant_id not in interaction_dict.keys()):
             continue
 
         for survey_time, survey in surveys.items():
