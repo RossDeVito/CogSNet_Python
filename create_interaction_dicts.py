@@ -11,7 +11,7 @@ from collections import defaultdict
 
 import pandas as pd
 
-def add_interaction(interaction, edge_dict, interaction_dict):
+def add_interaction_old(interaction, edge_dict, interaction_dict):
 	"""
 	Given a named tuple of a NetSense data phone record with unix_time added
 		adds record to interaction and edge dicts
@@ -30,18 +30,38 @@ def add_interaction(interaction, edge_dict, interaction_dict):
 		interaction.unix_time
 	])
 
+
+def add_interaction(interaction, edge_dict, interaction_dict):
+	"""
+	Given a named tuple of a NetSense data phone record with unix_time added
+		adds record to interaction and edge dicts
+	"""
+	if interaction.resp_id == interaction.id1:
+		inter_with_id = interaction.id2
+	elif interaction.resp_id == interaction.id2:
+		inter_with_id = interaction.id1
+	else:
+		raise SystemExit("Respondant id not in event info")
+
+	edge_dict[interaction.id1].add(interaction.id2)
+	edge_dict[interaction.id2].add(interaction.id1)
+
+	interaction_dict[interaction.resp_id][inter_with_id].append([
+		interaction.event_type,		# 0 for call, 1 for message
+		interaction.event_length,  # minutes/message size
+		interaction.unix_time
+	])
+
+
 if __name__ == "__main__":
 	phone_data = pd.read_csv(os.path.join("data", "telcodata.txt"),
 								sep=';',
-								names=['datetime', '_', 
+								names=['datetime', 'resp_id', 
 										'id1', 'id2', 
 										'event_type', 'event_length'])
 
 	# drop row resulting from terminating -1 in file
 	phone_data = phone_data.dropna()
-
-	# drop unused column
-	phone_data = phone_data.drop("_", axis=1)
 
 	# ids and event types to ints
 	phone_data.id1 = phone_data.id1.astype(int)
