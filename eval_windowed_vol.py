@@ -45,7 +45,7 @@ if __name__ == "__main__":
 			survey_dict_test[resp][survey_time] = survey_dict[resp][survey_time]
 
 		# check range of window values
-		for w in range(1, 365):
+		for w in range(1, 366):
 			ranker = WindowedVolumeRanker(w)
 			ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
 			ranker_res[-1]['w'] = w
@@ -53,6 +53,7 @@ if __name__ == "__main__":
 	# compile results
 	res_df = pd.DataFrame(ranker_res).groupby('w').mean().reset_index()
 
+	# res_df.to_csv('window_res.csv')
 	print(res_df)
 
 	melted_df = pd.melt(res_df, 

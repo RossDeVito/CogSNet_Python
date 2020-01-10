@@ -17,7 +17,10 @@ from comparers import DiffSklearnClassifierComparer
 def jaccard_similarity(list1, list2):
 	s1 = set(list1)
 	s2 = set(list2)
-	return len(s1.intersection(s2)) / len(s1.union(s2))
+	union = s1.union(s2)
+	if len(union) == 0:
+		return 1.0
+	return len(s1.intersection(s2)) / len(union)
 
 
 def kendal_tau(list1, list2):
@@ -63,8 +66,11 @@ def get_volume_n_days_before(events, survey_time, n_days):
                       & (events <= survey_time)])
 
 					
-def get_recency(events, survey_time, earliest_timestamp=1312617635):
+def get_recency(events, survey_time, earliest_timestamp=1189000931):
     """ Returns time delta between survey time and most recent event.
+
+	For original dataset earlist_timestamp should be 1312617635
+	For reality commons, earliest timestamp should be 1189000931
 
     If there are no events before or at survey time, returns time between
     earliest timestamp and survey time. earliest_timestamp should be the 
@@ -81,6 +87,14 @@ def get_recency(events, survey_time, earliest_timestamp=1312617635):
 def get_hawkes_signal(event_times, observation_time, beta):
 	times_before_obs = event_times[event_times <= observation_time]
 	time_deltas = observation_time - times_before_obs
+	return np.sum(beta * np.exp(-beta * time_deltas))
+
+
+def get_en_hawkes_signal(event_times, observation_time, beta, L2):
+	times_before_obs = event_times[event_times <= observation_time]
+	times_in_L1_window = times_before_obs[
+		observation_time - (L2 * 3600 * 24) < times_before_obs]
+	time_deltas = observation_time - times_in_L1_window
 	return np.sum(beta * np.exp(-beta * time_deltas))
 
 
@@ -348,6 +362,70 @@ class HawkesRanker(Ranker):
 		""" ranks the top_n possible ids in data """
 		hawkes_signals = {
 			k: get_hawkes_signal(v[:, 2], survey_time, self.beta)
+			for k, v in data.items()
+			if np.any(v[:, 2] <= survey_time)
+		}
+
+		ordered_inds = (
+                    -np.asarray(list(hawkes_signals.values()))).argsort()
+		ordered_canidates = np.asarray(
+                    list(hawkes_signals.keys()))[ordered_inds]
+
+		return ordered_canidates[:top_n]
+
+
+class HawkesRankerL(Ranker):
+	""" 
+	Ranks using a hawkes process to predict signal strength. 
+	
+	Takes args of L and p to set beta
+	"""
+
+	def __init__(self, L, p):
+		""" set beta for hawkes process """
+		self.L = L 
+		self.p = p
+		self.beta = np.log(1/p) / (L * 3600 * 24)
+
+	def __str__(self):
+		return "HawkesRanker L={} p={} beta={}".format(self.L, self.p, self.beta)
+
+	def _rank(self, data, top_n, survey_time):
+		""" ranks the top_n possible ids in data """
+		hawkes_signals = {
+			k: get_hawkes_signal(v[:, 2], survey_time, self.beta)
+			for k, v in data.items()
+			if np.any(v[:, 2] <= survey_time)
+		}
+
+		ordered_inds = (
+                    -np.asarray(list(hawkes_signals.values()))).argsort()
+		ordered_canidates = np.asarray(
+                    list(hawkes_signals.keys()))[ordered_inds]
+
+		return ordered_canidates[:top_n]
+
+
+class EnHawkesRanker(Ranker):
+	""" 
+	enhanced hawkes
+	"""
+
+	def __init__(self, L1, p, L2):
+		""" set beta for hawkes process """
+		self.L1 = L1
+		self.p = p
+		self.L2 = L2
+		self.beta = np.log(1/p) / (L1 * 3600 * 24)
+
+	def __str__(self):
+		return "EnHawkesRanker L1={} p={} L2={} beta={}".format(
+			self.L1, self.p, self.L2, self.beta)
+
+	def _rank(self, data, top_n, survey_time):
+		""" ranks the top_n possible ids in data """
+		hawkes_signals = {
+			k: get_en_hawkes_signal(v[:, 2], survey_time, self.beta, self.L2)
 			for k, v in data.items()
 			if np.any(v[:, 2] <= survey_time)
 		}

@@ -8,6 +8,8 @@ import pandas as pd
 
 import rbo  # https://github.com/changyaochen/rbo
 
+from rankers import jaccard_similarity, kendal_tau
+
 
 def jaccard_similarity(list1, list2):
 	s1 = set(list1)
@@ -27,7 +29,8 @@ def evaluate_for_node(events, surveys):
 
 		similarities.append([
 			jaccard_similarity(survey_res, selected_ids),
-			rbo.RankingSimilarity(survey_res, selected_ids).rbo()
+			rbo.RankingSimilarity(survey_res, selected_ids).rbo(),
+			kendal_tau(survey_res, selected_ids)
 		])
 
 	return similarities
@@ -49,10 +52,11 @@ def evaluate_random_model(edge_dict, interaction_dict, survey_dict):
 			))
 		n += 1
 		
-	return np.mean(np.stack(similarities), axis=0)
+	return np.nanmean(np.array(np.stack(similarities), dtype=np.float), axis=0)
 
 
 if __name__ == "__main__":
+	# Load required dicts
 	with open(os.path.join("data", "edge_dict.pkl"), 'rb') as pkl:
 		edge_dict = pickle.load(pkl)
 
@@ -66,9 +70,10 @@ if __name__ == "__main__":
 
 	result = np.mean(
 		[evaluate_random_model(edge_dict, interaction_dict, survey_dict)
-			for i in range(100)], axis=0)
+			for i in range(1000)], axis=0)
 
 	print(time.time() - start_time)
 
 	print("Avg Jaccard similarity:\t{}".format(result[0]))
 	print("Avg RBO:\t{}".format(result[1]))
+	print("Avg Kendall Tau:\t{}".format(result[2]))

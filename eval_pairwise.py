@@ -6,6 +6,15 @@ import pandas as pd
 
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import GradientBoostingClassifier, ExtraTreesClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Perceptron
+from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
@@ -52,15 +61,25 @@ for train_inds, test_inds in k_fold.split(surveys):
 		survey_dict_test[resp][survey_time] = survey_dict[resp][survey_time]
 
 	# Create and fit ranker
-	ranker = PairwiseRanker(SklearnClassifierComparer(
+	ranker = PairwiseRanker(OnlyDiffSklearnClassifierComparer(
 			Pipeline([
 				('scale', StandardScaler()),
-				('classify', AdaBoostClassifier(n_estimators=100))],
+				('classify', MLPClassifier(
+					(12,10,10,10,8,8,8,8,5,3), 
+					batch_size=128,
+					early_stopping=True))
+				],
 				verbose=True
 			),
-         	desc="std_scaler+AdaBoost n=100"
+         	desc="std_scaler+MLPClassifier((12,10,10,10,8,8,8,8,5,3), batch_size=128, early_stopping=True)"
         ),
 		verbose=1)
+	# ranker = PairwiseRanker(OnlyDiffSklearnClassifierComparer(
+	# 	ExtraTreesClassifier(n_estimators=1000, n_jobs=-1, verbose=0),
+	# 	desc="ExtraTreesClassifier(n_est=1000)"
+	# 	),
+	# 	verbose=0
+	# )
 
 	ranker.fit(interaction_dict, survey_dict_train)
 

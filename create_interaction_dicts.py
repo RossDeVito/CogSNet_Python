@@ -54,7 +54,7 @@ def add_interaction(interaction, edge_dict, interaction_dict):
 
 
 if __name__ == "__main__":
-	phone_data = pd.read_csv(os.path.join("data", "telcodata.txt"),
+	phone_data = pd.read_csv(os.path.join("data", "reality_commons_telcodata.txt"),
 								sep=';',
 								names=['datetime', 'resp_id', 
 										'id1', 'id2', 
@@ -95,8 +95,8 @@ if __name__ == "__main__":
 					interaction_dict[key][edge_with_key]).values
 		interaction_dict[key] = dict(interaction_dict[key])
 
-	with open(os.path.join("data", "edge_dict.pkl"), 'wb') as pkl:
+	with open(os.path.join("data", "reality_commons_edge_dict.pkl"), 'wb') as pkl:
 		pickle.dump(edge_dict, pkl, protocol=pickle.HIGHEST_PROTOCOL)
 
-	with open(os.path.join("data", "interaction_dict.pkl"), 'wb') as pkl:
+	with open(os.path.join("data", "reality_commons_interaction_dict.pkl"), 'wb') as pkl:
 		pickle.dump(interaction_dict, pkl, protocol=pickle.HIGHEST_PROTOCOL)

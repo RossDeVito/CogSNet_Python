@@ -12,8 +12,8 @@ register_matplotlib_converters()
 from run_cogsnet import get_forget_intensity, get_signals, jaccard_similarity
 
 if __name__ == "__main__":
-	mu = .2
-	theta = .1
+	mu = .1
+	theta = .05
 	L = 864000 / 3600
 	forget_type = 'exp'
 

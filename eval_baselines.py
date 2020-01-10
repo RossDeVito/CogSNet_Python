@@ -18,6 +18,12 @@ if __name__ == "__main__":
 	with open(os.path.join("data", "survey_textcall_dict.pkl"), 'rb') as pkl:
 		survey_dict = pickle.load(pkl)
 
+	# with open(os.path.join("data", "reality_commons_interaction_dict.pkl"), 'rb') as pkl:
+	# 	interaction_dict = pickle.load(pkl)
+
+	# with open(os.path.join("data", "reality_commons_survey_dict.pkl"), 'rb') as pkl:
+	# 	survey_dict = pickle.load(pkl)
+
 	surveys = []
 
 	for respondant_id, survey_times in survey_dict.items():

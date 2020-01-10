@@ -11,10 +11,7 @@ from dask.distributed import Client, LocalCluster
 
 import rbo  # https://github.com/changyaochen/rbo
 
-def jaccard_similarity(list1, list2):
-	s1 = set(list1)
-	s2 = set(list2)
-	return len(s1.intersection(s2)) / len(s1.union(s2))
+from rankers import jaccard_similarity, kendal_tau
 
 
 def get_forget_intensity(lifetime, mu, theta, forget_type):
@@ -119,7 +116,8 @@ def evaluate_for_node(events, surveys, L_vals, mu_vals, theta_vals, forget_types
 			return_matrix.append(
 				[L, mu, theta, forget_type, 
 					jaccard_similarity(top_n, cogsnet_top_n),
-					rbo.RankingSimilarity(top_n, cogsnet_top_n).rbo()
+					rbo.RankingSimilarity(top_n, cogsnet_top_n).rbo(),
+					kendal_tau(top_n, cogsnet_top_n)
 				])
 
 	return return_matrix
@@ -160,9 +158,9 @@ def evaluate_model_params(edge_dict, interaction_dict, survey_dict,
 	res_matrix = np.vstack(dask.compute(res_matrix)[0])
 
 	res_df = pd.DataFrame(
-		res_matrix, columns=['L', 'mu', 'theta', 'forget_func', 'jaccard_sim', 'rbo'])
-	res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo']
-        ] = res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo']].astype(float)
+		res_matrix, columns=['L', 'mu', 'theta', 'forget_func', 'jaccard_sim', 'rbo', 'kendall_tau'])
+	res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo', 'kendall_tau']
+        ] = res_df[['L', 'mu', 'theta', 'jaccard_sim', 'rbo', 'kendall_tau']].astype(float)
 	res_df.L = res_df.L / 24
 
 	return res_df
@@ -170,8 +168,10 @@ def evaluate_model_params(edge_dict, interaction_dict, survey_dict,
 
 if __name__ == "__main__":
 	# Create dask cluster
-	cluster = LocalCluster(n_workers=90, dashboard_address=':8766')
+	cluster = LocalCluster(n_workers=100, dashboard_address=':8765')
 	client = Client(cluster)
+
+	print("loading data")
 
 	# Load required dicts
 	with open(os.path.join("data", "edge_dict.pkl"), 'rb') as pkl:
@@ -198,19 +198,46 @@ if __name__ == "__main__":
 	# forget_types = ['exp']
 
 	# run 8
+	# L_vals = np.asarray(range(1, 29)) * 24
+	# mu_vals = np.linspace(.00001, .1, 30)
+	# theta_vals = np.linspace(.00001, .1, 30)
+	# forget_types = ['exp']
+
+	# final
 	L_vals = np.asarray(range(1, 29)) * 24
-	mu_vals = np.linspace(.00001, .1, 30)
-	theta_vals = np.linspace(.00001, .1, 30)
+	mu_vals = np.asarray(list(
+		set([0.09310414, 0.08620828, 0.09655207, 0.1, 0.02414552,
+            	0.08965621, 0.02759345, 0.03104138, 0.02069759, 0.03448931]
+		).union( [0.04138517, 0.01380172, 0.03448931, 0.0448331, 0.03104138,
+					0.02759345, 0.01724966, 0.02069759, 0.02414552, 0.03793724]
+		).union([0.002, 0.08657627, 0.10349153, 0.05274576, 0.06966102,
+					0.03583051, 0.01891525]
+		).union([0.03583051, 0.06966102, 0.05274576, 0.12040678, 0.08657627,
+					0.01891525, 0.10349153]
+		).union([0.25, 0.3, 0.2, 0.15, 0.05, 0.1])))
+	theta_vals = np.asarray(list(
+		set([0.08620828, 0.07931241, 0.09310414, 0.09655207, 0.02069759,
+               	0.08965621, 0.02414552, 0.02759345, 0.08276034, 0.07586448,
+               	0.01724966, 0.03104138]
+		).union([0.03793724, 0.01035379, 0.03104138, 0.04138517, 0.02759345,
+       				0.02414552, 0.01380172, 0.01724966, 0.02069759, 0.03448931]
+        ).union([0.001, 0.08566102, 0.03486441, 0.10259322, 0.0179322,
+                            0.06872881, 0.05179661]
+        ).union([0.03486441, 0.06872881, 0.0179322, 0.05179661, 0.11952542,
+                            0.08566102, 0.001, 0.10259322]
+        ).union([1.33333333e-01, 6.66666667e-02, 2.33333333e-01, 2.66666667e-01,
+                            2.00000000e-01, 1.00000000e-01, 1.66666667e-01, 3.33333333e-02,
+                            1.00000000e-04])))
 	forget_types = ['exp']
 
 	# Preform grid search to create dataframe of parameters combination and
 	# their respective performances
-	# start_time = time.time()
+	start_time = time.time()
 
 	res_df = evaluate_model_params(edge_dict, interaction_dict, survey_dict,
                                  	L_vals, mu_vals, theta_vals, forget_types)
 
-	# print(time.time() - start_time)
+	print(time.time() - start_time)
 
 	# Format and save results
 	mean_df = res_df.groupby(['L', 'mu', 'theta', 'forget_func']).mean().reset_index()
