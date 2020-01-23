@@ -14,9 +14,9 @@ import rbo  # https://github.com/changyaochen/rbo
 
 
 if __name__ == "__main__":
-	mu = .05
-	theta = .0333
-	L_vals = np.asarray([7, 21, 60, 180, 365, 460]) * 24  # hours
+	mu = .0189153
+	theta = 0.0179322
+	L_vals = np.asarray([18, 460]) * 24  # hours
 	forget_type = 'exp'
 
 	n_samples = 1000
@@ -26,9 +26,9 @@ if __name__ == "__main__":
 
 	ids_and_n_edges = [(k, len(interactions[k])) for k in surveys.keys()]
 	# id_to_plot = 15548
-	id_to_plot = 75466
+	# id_to_plot = 75466
 	# id_to_plot = 69669 # no overlap, dont use
-	# id_to_plot = 80058
+	id_to_plot = 80058
 	# id_to_plot = 86727
 	# id_to_plot = 62555
 	# id_to_plot = 30076
@@ -148,5 +148,5 @@ if __name__ == "__main__":
 
 	fig.autofmt_xdate()
 	fig.set_tight_layout({"rect": [0, 0.01, 1, .95]})
-	fig.savefig("vis/{}_signals_{}_{}".format(id_to_plot, int(mu * 100), int(theta * 100)),
+	fig.savefig("vis_f/{}_signals_{}_{}".format(id_to_plot, int(mu * 100), int(theta * 100)),
              dpi=500)

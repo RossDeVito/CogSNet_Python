@@ -254,6 +254,52 @@ class Ranker():
 			"kendall_tau": np.mean(kendal_taus)
 		}
 
+	def predict_and_score(self, interaction_dict, survey_dict):
+		""" 
+		Predicts ranking using self.predict, then scores in same way as
+		self.score. Returns result of both while only ranking once.
+
+		Args:
+			interaction_dict:
+			survey_dict:
+
+		Returns:
+			returns a dictionary with two keys. One key is 'predict' whose 
+				value is the result of self.predict. The other key is 
+				'score' whose value is the result of self.predict
+		"""
+		predicted_rankings = self.predict(interaction_dict, survey_dict)
+
+		jaccards = []
+		rbos = []
+		kendal_taus = []
+
+		for respondant_id, predictions in predicted_rankings.items():
+			for survey_time, pred_ranking in predictions.items():
+				survey_ranking = list(
+					survey_dict[respondant_id][survey_time].values())
+
+				jaccards.append(
+					jaccard_similarity(survey_ranking, pred_ranking))
+
+				rbos.append(
+					rbo.RankingSimilarity(survey_ranking, pred_ranking).rbo())
+
+				kendal_taus.append(kendal_tau(survey_ranking, pred_ranking))
+
+		kendal_taus = np.asarray(kendal_taus)
+		kendal_taus = kendal_taus[kendal_taus != np.array(None)]
+
+		return {
+			'predict': predicted_rankings,
+			'score':	{"jaccard": np.mean(jaccards),
+							"rbo": np.mean(rbos),
+							"kendall_tau": np.mean(kendal_taus)}
+		}
+
+	def get_signals(self, ids, interaction_dict):
+		raise NotImplementedError("Cannot get signals with this ranker type")
+
 
 class RandomRanker(Ranker):
 	""" Predicts by randomly selecting from the ids respondant has had events
@@ -293,6 +339,39 @@ class VolumeRanker(Ranker):
 
 		return ordered_canidates[:top_n]
 
+	def get_signals(self, ids, users_interaction_dict, times, norm_all=True):
+		""" 
+		Gives signal at given times
+		
+		signal is (n events) / (max n events for all edges) 
+
+		Args:
+			users_interaction_dict is the interactions for just the users whose
+				signals are being generated
+
+			norm_all: If Ture normalizes with all edge all time min and
+				max. If False normalizes with min and max per time in times
+		"""
+		counts = {
+			k: [len(v[np.asarray(v[:, 2] <= times[0])])]
+			for k, v in users_interaction_dict.items()
+		}
+
+		for time in times[1:]:
+			for k, v in users_interaction_dict.items():
+				counts[k].append(len(v[np.asarray(v[:, 2] <= time)]))
+		
+		if norm_all:
+			max_events = np.max(np.hstack(list(counts.values())))
+		else:
+			max_events = np.max(np.stack(list(counts.values())), axis=0)
+
+		ret_dict = dict()
+
+		for uid in ids:
+			ret_dict[uid] = np.asarray(counts[uid]) / max_events
+
+		return ret_dict
 
 class WindowedVolumeRanker(Ranker):
 	""" Ranks by number of events between two ids in the time window before
@@ -322,6 +401,35 @@ class WindowedVolumeRanker(Ranker):
                     list(canidate_event_counts.keys()))[ordered_inds]
 
 		return ordered_canidates[:top_n]
+
+	def get_signals(self, ids, users_interaction_dict, times, norm_all=True):
+		""" 
+		Gives signal at given times
+		
+		signal = (n events in window) / (max n events in any window for all edges)
+		"""
+		counts = {
+			k: [get_volume_n_days_before(v[:, 2], times[0], self.window_size)]
+			for k, v in users_interaction_dict.items()
+		}
+		
+		for time in times[1:]:
+			for k, v in users_interaction_dict.items():
+				counts[k].append(
+					get_volume_n_days_before(v[:, 2], time, self.window_size)
+				)
+		
+		if norm_all:
+			max_events = np.max(np.hstack(list(counts.values())))
+		else:
+			max_events = np.max(np.stack(list(counts.values())), axis=0)
+
+		ret_dict = dict()
+
+		for uid in ids:
+			ret_dict[uid] = np.asarray(counts[uid]) / max_events
+
+		return ret_dict
 
 
 class RecencyRanker(Ranker):
@@ -408,7 +516,7 @@ class HawkesRankerL(Ranker):
 
 class EnHawkesRanker(Ranker):
 	""" 
-	enhanced hawkes
+	enhanced hawkes, but its actualy not so don't call it that
 	"""
 
 	def __init__(self, L1, p, L2):
