@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
 		interaction_dict = pickle.load(pkl)
 
-	with open(os.path.join("data", "survey_textcall_dict.pkl"), 'rb') as pkl:
+	with open(os.path.join("data", "new_weighted_survey_textcall_dict.pkl"), 'rb') as pkl:
 		survey_dict = pickle.load(pkl)
 
 	# with open(os.path.join("data", "reality_commons_interaction_dict.pkl"), 'rb') as pkl:

@@ -6,7 +6,7 @@ import pandas as pd
 
 from sklearn.model_selection import KFold
 
-from rankers import HawkesRanker, PresetParamCogSNetRanker
+from rankers import HawkesRanker, CogSNet2Ranker, CogSNetRanker
 
 
 def get_beta(L, p):
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 	with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
 		interaction_dict = pickle.load(pkl)
 
-	with open(os.path.join("data", "survey_textcall_dict.pkl"), 'rb') as pkl:
+	with open(os.path.join("data", "weighted_survey_textcall_dict.pkl"), 'rb') as pkl:
 		survey_dict = pickle.load(pkl)
 
 	# with open(os.path.join("data", "reality_commons_interaction_dict.pkl"), 'rb') as pkl:
@@ -42,12 +42,14 @@ if __name__ == "__main__":
 
 	ranker_res = []
 
-	for train_inds, test_inds in k_fold.split(surveys):
-		# surveys_train = surveys[train_inds]
-		# surveys_test = surveys[test_inds]
+	f = 1
 
-		surveys_train = surveys
-		surveys_test = surveys
+	for train_inds, test_inds in k_fold.split(surveys):
+		surveys_train = surveys[train_inds]
+		surveys_test = surveys[test_inds]
+
+		# surveys_train = surveys
+		# surveys_test = surveys
 
 		survey_dict_train = {resp: dict() for resp, _ in surveys_train}
 		for resp, survey_time in surveys_train:
@@ -57,23 +59,50 @@ if __name__ == "__main__":
 		for resp, survey_time in surveys_test:
 			survey_dict_test[resp][survey_time] = survey_dict[resp][survey_time]
 
-		ranker = HawkesRanker(1.727784e-07)
+		print("Hawkes 1")
+		ranker = HawkesRanker(2.221e-07)
 		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
 		ranker_res[-1]['desc'] = str(ranker)
 
-		ranker = HawkesRanker(3.807e-06)
+		print("Hawkes 2")
+		ranker = HawkesRanker(2.268e-07)
 		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
 		ranker_res[-1]['desc'] = str(ranker)
 
-		ranker = HawkesRanker(2.538e-06)
+		print("Hawkes 3")
+		ranker = HawkesRanker(1.2e-07)
 		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
 		ranker_res[-1]['desc'] = str(ranker)
 
-		ranker = HawkesRanker(1.269e-06)
+		print("Hawkes 4")
+		ranker = HawkesRanker(1.697e-07)
 		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
 		ranker_res[-1]['desc'] = str(ranker)
 
-		break
+		print("Cogs 1")
+		ranker = CogSNetRanker(L=12, mu=.0189153, theta=.0179322)
+		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
+		ranker_res[-1]['desc'] = str(ranker)
+
+		print("Cogs 2")
+		ranker = CogSNetRanker(L=11, mu=.0344893, theta=.0333333)
+		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
+		ranker_res[-1]['desc'] = str(ranker)
+
+		print("Cogs 3")
+		ranker = CogSNetRanker(L=18, mu=.0189153, theta=.0179322)
+		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
+		ranker_res[-1]['desc'] = str(ranker)
+
+		print("Cogs 4")
+		ranker = CogSNetRanker(L=25, mu=.0206976, theta=.0172497)
+		ranker_res.append(ranker.score(interaction_dict, survey_dict_test))
+		ranker_res[-1]['desc'] = str(ranker)
+
+		print("Finished fold {}".format(f))
+		f += 1
+
+		# break
 
 	# compile results
 	res_df = pd.DataFrame(ranker_res).groupby('desc').mean()

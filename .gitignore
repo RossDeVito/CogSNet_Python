@@ -1,8 +1,10 @@
 __pycache__/
 dask-worker-space/
+summarized_time_series_data/
 
 data/*
 vis/*
 
 F.png
 nohup.out
+*.out
