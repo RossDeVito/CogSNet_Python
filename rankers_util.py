@@ -13,6 +13,7 @@ from scipy.stats import kendalltau
 from keras.models import load_model
 import joblib
 
+from comparers import TimeSeriesComparerNoScaler
 
 def jaccard_similarity(list1, list2):
 	s1 = set(list1)
@@ -371,15 +372,20 @@ def save_keras_ranker(ranker, dir_name, path='', overwrite=True):
 
 	pd.to_pickle(ranker, os.path.join(save_dir, 'ranker.pkl'))
 
+	TimeSeriesComparerNoScaler
+
 	model = comparer.model
-	scaler = comparer.scaler
 	comparer.model = None
-	comparer.scaler = None
+
+	if not isinstance(comparer, TimeSeriesComparerNoScaler):
+		scaler = comparer.scaler
+		comparer.scaler = None
+		joblib.dump(scaler, os.path.join(save_dir, 'scaler.gz'))
+
 	comparer.callbacks = 'removed to save. Should be saved as part of model'
 
 	pd.to_pickle(comparer, os.path.join(save_dir, 'comparer.pkl'))
 	model.save(os.path.join(save_dir, 'model.h5'))
-	joblib.dump(scaler, os.path.join(save_dir, 'scaler.gz'))
 
 	comparer.model = model
 	comparer.scaler = scaler
@@ -388,11 +394,13 @@ def save_keras_ranker(ranker, dir_name, path='', overwrite=True):
 
 def load_keras_ranker(path):
 	model = load_model(os.path.join(path, 'model.h5'))
-	scaler = joblib.load(os.path.join(path, 'scaler.gz'))
 	comparer = pd.read_pickle(os.path.join(path, 'comparer.pkl'))
 
 	comparer.model = model
-	comparer.scaler = scaler
+
+	if not isinstance(comparer, TimeSeriesComparerNoScaler):
+		scaler = joblib.load(os.path.join(path, 'scaler.gz'))
+		comparer.scaler = scaler
 
 	ranker = pd.read_pickle(os.path.join(path, 'ranker.pkl'))
 

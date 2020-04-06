@@ -1,0 +1,11 @@
+,desc,jaccard,rbo,kendall_tau,old_name
+60,TimeSeriesPairwiseRanker borda bs_21 w_None of_False s_True m_count: TSCns: LSTM1 bs=1024,0.5192414291008347,0.4851710912766034,0.5504861499179914,jaccard
+61,TimeSeriesPairwiseRanker tau bs_21 w_None of_False s_True m_count: TSCns: LSTM1 bs=1024,0.5234297195677006,0.4838895988460822,0.5448031795024141,jaccard
+64,TimeSeriesPairwiseRanker borda bs_21 w_None of_True s_True m_both: TSCns: LSTM1 bs=64,0.4630805761023133,0.4421243569226528,0.4797277356161935,rbo
+65,TimeSeriesPairwiseRanker tau bs_21 w_None of_True s_True m_both: TSCns: LSTM1 bs=64,0.47916173167912923,0.4510353523873234,0.48601101585791123,rbo
+62,TimeSeriesPairwiseRanker borda bs_7 w_None of_False s_False m_count: TSCns: LSTM1 bs=1024,0.5056218391730806,0.4756662468899762,0.5331860922980401,kendall
+63,TimeSeriesPairwiseRanker tau bs_7 w_None of_False s_False m_count: TSCns: LSTM1 bs=1024,0.503032238103838,0.47418929542914956,0.5353666745720789,kendall
+68,TimeSeriesPairwiseRanker borda bs_21 w_None of_False s_True m_count: TSCns: LSTM2 bs=1024,0.519712327561842,0.48472310298700344,0.5437626798466956,avg
+69,TimeSeriesPairwiseRanker tau bs_21 w_None of_False s_True m_count: TSCns: LSTM2 bs=1024,0.5254942267803158,0.48874981183107125,0.5556199388526278,avg
+66,TimeSeriesPairwiseRanker borda bs_7 w_None of_True s_True m_count: TSCns: LSTM1 bs=1024,0.509523093402572,0.47384859690504716,0.5353528109559572,rank
+67,TimeSeriesPairwiseRanker tau bs_7 w_None of_True s_True m_count: TSCns: LSTM1 bs=1024,0.5050412189738549,0.46892050304014077,0.5432997699769102,rank

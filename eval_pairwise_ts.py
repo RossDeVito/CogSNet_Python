@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.model_selection import KFold
 
 from rankers import TimeSeriesPairwiseRanker
-from comparers import TimeSeriesComparer
+from comparers import TimeSeriesComparer, TimeSeriesComparerNoScaler
 
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
@@ -17,10 +17,12 @@ from tsc_models import *
 # SPLIT PARAMS
 N_SPLITS = 5
 RAND_SEED = 147
-RECORD_RESULTS = False
+RECORD_RESULTS = True
 
-SAVE_MODEL = True
-model_name = 'best_jaccard_lstm'
+SAVE_MODEL = False
+model_name = 'best_avg_lstm_no_scaling'
+
+pd.set_option('display.max_colwidth', -1) 
 
 callbacks = [
 	EarlyStopping(patience=12, verbose=1, restore_best_weights=True),
@@ -50,14 +52,15 @@ ranker_res = []
 
 for train_inds, test_inds in k_fold.split(surveys):
 
-	model = LSTM1(4)
+	model = LSTM2(4)
 
-	# # Split test and train surveys
-	# surveys_train = surveys[train_inds]
-	# surveys_test = surveys[test_inds]
+	# Split test and train surveys
+	surveys_train = surveys[train_inds]
+	surveys_test = surveys[test_inds]
 
-	surveys_train = surveys
-	surveys_test = surveys
+	if SAVE_MODEL:
+		surveys_train = surveys
+		surveys_test = surveys
 
 	survey_dict_train = {resp: dict() for resp, _ in surveys_train}
 	for resp, survey_time in surveys_train:
@@ -69,15 +72,15 @@ for train_inds, test_inds in k_fold.split(surveys):
 
 	# Create and fit ranker
 	ranker = TimeSeriesPairwiseRanker(
-		TimeSeriesComparer(
+		TimeSeriesComparerNoScaler(
 			model,
 			desc="LSTM1 bs=1024",
 			batch_size=1024,
 			epochs=200,
 			callbacks=callbacks,
-			verbose=2,
+			verbose=1,
 			validation_split=.1,
-			n_workers=20
+			n_workers=40
 		),
 		bin_size=21,
 		other_feat=False,
@@ -96,7 +99,8 @@ for train_inds, test_inds in k_fold.split(surveys):
 
 	print(ranker_res)
 
-	break
+	if SAVE_MODEL:
+		break
 
 # compile results
 res_df = pd.DataFrame(ranker_res).groupby('desc').mean().reset_index()

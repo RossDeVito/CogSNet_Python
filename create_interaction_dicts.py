@@ -54,14 +54,25 @@ def add_interaction(interaction, edge_dict, interaction_dict):
 
 
 if __name__ == "__main__":
-	phone_data = pd.read_csv(os.path.join("data", "reality_commons_telcodata.txt"),
+	# phone_data = pd.read_csv(os.path.join("data", "reality_commons_telcodata.txt"),
+	# 							sep=';',
+	# 							names=['datetime', 'resp_id', 
+	# 									'id1', 'id2', 
+	# 									'event_type', 'event_length'])
+	phone_data = pd.read_csv(os.path.join("data", "nethealth_data", 
+										   "nethealth_telcodata.txt"),
 								sep=';',
 								names=['datetime', 'resp_id', 
 										'id1', 'id2', 
 										'event_type', 'event_length'])
 
+	print("Read telcodata")
+	print("Preparing data")
+
 	# drop row resulting from terminating -1 in file
 	phone_data = phone_data.dropna()
+
+	print("\tdropped na")
 
 	# ids and event types to ints
 	phone_data.id1 = phone_data.id1.astype(int)
@@ -69,10 +80,14 @@ if __name__ == "__main__":
 	phone_data.event_type = phone_data.event_type.astype(int)
 	phone_data.event_length = phone_data.event_length.astype(int)
 
+	print("\tconverted to ints")
+
 	# add unix time and remove then unneeded DateList
 	phone_data['unix_time'] = phone_data.datetime.apply(lambda t: 
 		time.mktime(datetime.datetime.strptime(t, "%Y-%m-%d %H:%M:%S").timetuple())).astype(int)
 	phone_data = phone_data.drop("datetime", axis=1)
+
+	print("\tconverted to datetime")
 	
 	# dict that will map from a user id to the set of all user ids it will
 	# have an edge with
@@ -82,9 +97,17 @@ if __name__ == "__main__":
 	# between them. Order of two user ids will always be (lower_num, greater_num)
 	interaction_dict = defaultdict(lambda: defaultdict(list))
 
+	print("Adding interactions")
+	n = len(phone_data)
+	i = 1
+
 	# for each row, add interaction to dicts
 	for interaction in phone_data.itertuples(index=False):
+		print("\t{} / {}".format(i, n))
+		i += 1
 		add_interaction(interaction, edge_dict, interaction_dict)
+
+	print("Finished adding interactions")
 
 	edge_dict = dict(edge_dict)
 	interaction_dict = dict(interaction_dict)
@@ -95,8 +118,8 @@ if __name__ == "__main__":
 					interaction_dict[key][edge_with_key]).values
 		interaction_dict[key] = dict(interaction_dict[key])
 
-	with open(os.path.join("data", "reality_commons_edge_dict.pkl"), 'wb') as pkl:
+	with open(os.path.join("data", "nethealth_edge_dict.pkl"), 'wb') as pkl:
 		pickle.dump(edge_dict, pkl, protocol=pickle.HIGHEST_PROTOCOL)
 
-	with open(os.path.join("data", "reality_commons_interaction_dict.pkl"), 'wb') as pkl:
+	with open(os.path.join("data", "nethealth_interaction_dict.pkl"), 'wb') as pkl:
 		pickle.dump(interaction_dict, pkl, protocol=pickle.HIGHEST_PROTOCOL)

@@ -437,3 +437,104 @@ class TimeSeriesComparer(Comparer):
 								  verbose=self.fit_verbose,
 								  workers=self.n_workers)
 
+		
+class TimeSeriesComparerNoScaler(TimeSeriesComparer):
+	"""
+	Uses Keras model to compare time series. does not scale input
+	"""
+
+	def __init__(self, model, desc=None, 
+				 batch_size=None, epochs=10, callbacks=None, validation_split=.1,
+				 verbose=0, fit_verbose=1, n_workers=1):
+		""" 
+		verbose 3 or higher will save plots of model fitting history
+		"""
+		self.model = model
+		self.desc = desc
+		self.batch_size = batch_size
+		self.epochs = epochs
+		self.callbacks = callbacks
+		self.verbose = verbose
+		self.fit_verbose = fit_verbose
+		self.validation_split = validation_split
+		self.n_workers = n_workers
+
+	def __str__(self):
+		if self.desc is None:
+			return "TSCns: {}".format(str(self.model))
+		return "TSCns: {}".format(self.desc)
+
+	def fit(self, feats, labels):
+		"""
+		
+		Args:
+
+		Returns:
+			fit self
+		"""
+
+		self.model.fit(
+			np.stack(feats).transpose([0,2,1]),
+			labels,
+			batch_size=self.batch_size,
+			epochs=self.epochs,
+			callbacks=self.callbacks,
+			validation_split=self.validation_split,
+			shuffle=True,
+			verbose=self.fit_verbose,
+			workers=self.n_workers)
+
+		return self
+
+	def predict(self, X):
+		""" Predicts class of relationship between id1 and id2
+
+		Predicts 1 or 0. 1 if id1 is predicted ranked higher, else 0
+
+		This implementation should not actually be used, always predicts 1. 
+		Purpose is only as function prototype.
+
+		Args:
+			
+
+		Returns:
+			array of length n_samples were each value is the predicted 
+				relationship between the ids at that index
+		"""
+
+		if self.verbose > 0:
+			print("\tPredicting")
+
+		feats_transposed = np.stack(X).transpose([0,2,1])
+
+		res = self.model.predict(feats_transposed,
+								 batch_size=feats_transposed.shape[0],
+								 verbose=self.fit_verbose,
+								 workers=self.n_workers)
+		
+		res[res > .5] = 1
+		res[res <= .5] = 0
+
+		return res
+
+	def predict_proba(self, X):
+		""" Predicts probability id1 is ranked higher than id2
+
+		Args:
+			
+		Returns:
+			array of length n_samples were each value is the probability that
+				the id1 at that index is ranked higher than the id2 at that 
+				index
+		"""
+
+		if self.verbose > 0:
+			print("\tPredicting")
+
+		feats_transposed = np.stack(X).transpose([0,2,1])
+
+		return self.model.predict(feats_transposed,
+								  batch_size=feats_transposed.shape[0],
+								  verbose=self.fit_verbose,
+								  workers=self.n_workers)
+

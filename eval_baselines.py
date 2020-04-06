@@ -12,10 +12,16 @@ if __name__ == "__main__":
 	n_splits = 5
 	rand_seed = 147
 
-	with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
+	# with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
+	# 	interaction_dict = pickle.load(pkl)
+
+	# with open(os.path.join("data", "weighted_survey_textcall_dict.pkl"), 'rb') as pkl:
+	# 	survey_dict = pickle.load(pkl)
+
+	with open(os.path.join("data", "nethealth_interaction_dict.pkl"), 'rb') as pkl:
 		interaction_dict = pickle.load(pkl)
 
-	with open(os.path.join("data", "new_weighted_survey_textcall_dict.pkl"), 'rb') as pkl:
+	with open(os.path.join("data", "nethealth_survey_textcall_dict.pkl"), 'rb') as pkl:
 		survey_dict = pickle.load(pkl)
 
 	# with open(os.path.join("data", "reality_commons_interaction_dict.pkl"), 'rb') as pkl:

@@ -20,7 +20,12 @@ import pickle
 import pandas as pd
 
 if __name__ == "__main__":
-	survey_data = pd.read_csv(os.path.join("data", "weighted-survey-in.txt"),
+	# survey_data = pd.read_csv(os.path.join("data", "weighted-survey-in.txt"),
+	# 							sep=';',
+	# 							names=['node', 'partner', 'semester_num',
+	# 									'datetime', 'survey_rank'])
+	survey_data = pd.read_csv(os.path.join("data", "nethealth_data", 
+											"weighted-survey-in.txt"),
 								sep=';',
 								names=['node', 'partner', 'semester_num',
 										'datetime', 'survey_rank'])
@@ -47,12 +52,12 @@ if __name__ == "__main__":
 	# create dict with only those w/ texts or calls 
 	survey_dict_tc = defaultdict(lambda: defaultdict(dict))
 
-	with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
+	with open(os.path.join("data", "nethealth_interaction_dict.pkl"), 'rb') as pkl:
 		interaction_dict = pickle.load(pkl)
 
 	for node_id in survey_dict.keys():
 		if node_id not in interaction_dict.keys():
-			print("L55 not in: {}".format(node_id))
+			print("L60 not in: {}".format(node_id))
 			continue
 
 		edges_out = set(interaction_dict[node_id].keys())
@@ -71,8 +76,8 @@ if __name__ == "__main__":
 		survey_dict_tc[key] = dict(survey_dict_tc[key])
 	survey_dict_tc = dict(survey_dict_tc)
 
-	with open(os.path.join("data", "new_weighted_survey_dict.pkl"), 'wb') as pkl:
+	with open(os.path.join("data", "nethealth_survey_dict.pkl"), 'wb') as pkl:
 		pickle.dump(survey_dict, pkl, protocol=pickle.HIGHEST_PROTOCOL)
 
-	with open(os.path.join("data", "new_weighted_survey_textcall_dict.pkl"), 'wb') as pkl:
+	with open(os.path.join("data", "nethealth_survey_textcall_dict.pkl"), 'wb') as pkl:
 		pickle.dump(survey_dict_tc, pkl, protocol=pickle.HIGHEST_PROTOCOL)
