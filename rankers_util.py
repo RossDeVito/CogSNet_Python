@@ -388,7 +388,9 @@ def save_keras_ranker(ranker, dir_name, path='', overwrite=True):
 	model.save(os.path.join(save_dir, 'model.h5'))
 
 	comparer.model = model
-	comparer.scaler = scaler
+
+	if not isinstance(comparer, TimeSeriesComparerNoScaler):
+		comparer.scaler = scaler
 
 	ranker.comparer = comparer
 

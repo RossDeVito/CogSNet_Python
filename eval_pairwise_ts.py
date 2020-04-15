@@ -20,19 +20,26 @@ RAND_SEED = 147
 RECORD_RESULTS = True
 
 SAVE_MODEL = False
-model_name = 'best_avg_lstm_no_scaling'
+model_name = 'nethealth_a_lstm_no_scaling'
 
 pd.set_option('display.max_colwidth', -1) 
+pd.set_option('display.expand_frame_repr', False) 
 
 callbacks = [
 	EarlyStopping(patience=12, verbose=1, restore_best_weights=True),
 	ReduceLROnPlateau(factor=.5, patience=7, verbose=1)
 ]
 
-with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
+# with open(os.path.join("data", "interaction_dict.pkl"), 'rb') as pkl:
+# 	interaction_dict = pickle.load(pkl)
+
+# with open(os.path.join("data", "weighted_survey_textcall_dict.pkl"), 'rb') as pkl:
+# 	survey_dict = pickle.load(pkl)
+
+with open(os.path.join("data", "nethealth_interaction_dict.pkl"), 'rb') as pkl:
 	interaction_dict = pickle.load(pkl)
 
-with open(os.path.join("data", "weighted_survey_textcall_dict.pkl"), 'rb') as pkl:
+with open(os.path.join("data", "nethealth_survey_textcall_dict.pkl"), 'rb') as pkl:
 	survey_dict = pickle.load(pkl)
 
 # for uid in list(survey_dict.keys())[10:]:
@@ -74,7 +81,7 @@ for train_inds, test_inds in k_fold.split(surveys):
 	ranker = TimeSeriesPairwiseRanker(
 		TimeSeriesComparerNoScaler(
 			model,
-			desc="LSTM1 bs=1024",
+			desc="LSTM2 bs=1024",
 			batch_size=1024,
 			epochs=200,
 			callbacks=callbacks,
@@ -108,11 +115,11 @@ res_df = pd.DataFrame(ranker_res).groupby('desc').mean().reset_index()
 print(res_df)
 
 if SAVE_MODEL:
-	save_keras_ranker(ranker, path='trained_models', dir_name=model_name)
+	save_keras_ranker(ranker, path='trained_models_nethealth', dir_name=model_name)
 
 # update dataframe of all test results
 if RECORD_RESULTS:
-	all_res = pd.read_pickle("pairwise_ts_res.pkl")
+	all_res = pd.read_pickle("pairwise_ts_res_nethealth.pkl")
 	all_res = all_res.append(res_df, ignore_index=True)
 	print(all_res)
-	all_res.to_pickle("pairwise_ts_res.pkl")
+	all_res.to_pickle("pairwise_ts_res_nethealth.pkl")
